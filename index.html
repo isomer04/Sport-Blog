@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sports Blog</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+<header>
+    <h1>Sports Blog</h1>
+    <div class="search-bar">
+        <input type="text" id="search" placeholder="Search posts by title">
+    </div>
+</header>
+
+<main>
+    <div class="sort-bar">
+        <label for="sort">Sort by:</label>
+        <select id="sort">
+            <option value="date_desc">Date (Newest First)</option>
+            <option value="date_asc">Date (Oldest First)</option>
+            <option value="title_asc">Title (A-Z)</option>
+            <option value="title_desc">Title (Z-A)</option>
+        </select>
+    </div>
+
+    <div id="blog-posts">
+
+    </div>
+
+    <!-- Pagination links -->
+    <div class="pagination">
+
+    </div>
+</main>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
