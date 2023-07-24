@@ -1,17 +1,66 @@
 <?php
+//$host = 'localhost:3306';
+//$username = 'root';
+//$password = '123456';
+//$db_name = 'sportblog';
+//
+//// Establish a database connection
+//$conn = mysqli_connect($host, $username, $password, $db_name);
+//
+//if (!$conn) {
+//    die("Connection failed: " . mysqli_connect_error());
+//}
+
+include 'config.php';
 
 
-// Replace 'your_host', 'your_username', 'your_password', and 'your_db_name' with your database credentials
-$host = 'localhost:3306';
-$username = 'root';
-$password = '123456';
-$db_name = 'sportblog';
+// CRUD Operations
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    // Create
+    if (isset($_POST["create"])) {
+        $title = $_POST["title"];
+        $content = $_POST["content"];
+        $category = $_POST["category"];
+        $created_at = date('Y-m-d H:i:s');
 
-// Establish a database connection
-$conn = mysqli_connect($host, $username, $password, $db_name);
+        $sql = "INSERT INTO posts (title, content, category, created_at) VALUES ('$title', '$content', '$category', '$created_at')";
 
-if (!$conn) {
-    die("Connection failed: " . mysqli_connect_error());
+        if (mysqli_query($conn, $sql)) {
+            header("Location: index.php");
+            exit;
+        } else {
+            echo "Error: " . mysqli_error($conn);
+        }
+    }
+
+    // Update
+    if (isset($_POST["update"])) {
+        $id = $_POST["post_id"];
+        $title = $_POST["title"];
+        $content = $_POST["content"];
+
+        $sql = "UPDATE posts SET title='$title', content='$content' WHERE id=$id";
+
+        if (mysqli_query($conn, $sql)) {
+            header("Location: index.php");
+            exit;
+        } else {
+            echo "Error: " . mysqli_error($conn);
+        }
+    }
+}
+
+// Delete
+if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET["delete"])) {
+    $id = $_GET["delete"];
+    $sql = "DELETE FROM posts WHERE id=$id";
+
+    if (mysqli_query($conn, $sql)) {
+        header("Location: index.php");
+        exit;
+    } else {
+        echo "Error deleting record: " . mysqli_error($conn);
+    }
 }
 
 // Fetch blog posts from the database
@@ -52,9 +101,7 @@ if (isset($_GET['search'])) {
     $sql = "SELECT * FROM posts ORDER BY $orderBy LIMIT $offset, $posts_per_page";
 }
 
-
 $result = mysqli_query($conn, $sql);
-
 ?>
 
 <!DOCTYPE html>
@@ -69,12 +116,30 @@ $result = mysqli_query($conn, $sql);
 </header>
 
 <main>
+    <!-- Create Post Form -->
+    <div class="post-form">
+        <h3>Create Post</h3>
+        <form method="post">
+            <input type="text" name="title" placeholder="Title" required><br>
+            <textarea name="content" placeholder="Content" required></textarea><br>
+            <select name="category">
+                <option value="Sports">Sports</option>
+                <option value="Fitness">Fitness</option>
+                <option value="Health">Health</option>
+            </select><br>
+            <button type="submit" name="create">Create Post</button>
+        </form>
+    </div>
+
+    <!-- Display Blog Posts -->
     <?php while ($row = mysqli_fetch_assoc($result)) { ?>
         <div class="post">
             <h2><?php echo $row['title']; ?></h2>
             <p><?php echo $row['content']; ?></p>
             <p>Category: <?php echo $row['category']; ?></p>
             <p>Published at: <?php echo $row['created_at']; ?></p>
+            <a href="edit.php?id=<?php echo $row['id']; ?>">Edit</a>
+            <a href="?delete=<?php echo $row['id']; ?>" onclick="return confirm('Are you sure you want to delete this post?')">Delete</a>
         </div>
     <?php } ?>
 
