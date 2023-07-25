@@ -57,11 +57,14 @@ if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET["id"])) {
     <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
-<header class="bg-primary text-white text-center py-4">
-    <h1>Edit Blog Post</h1>
-</header>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <a class="navbar-brand" href="index.php">Sports Blog</a>
+</nav>
+
 
 <main class="container mt-4">
+        <h1>Edit Blog Post</h1>
     <!-- Edit Post Form -->
     <div class="post-form">
         <form method="post">

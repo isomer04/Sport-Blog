@@ -1,4 +1,8 @@
 <?php
+
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 $host = 'localhost:3306';
 $username = 'root';
 $password = '123456';
@@ -26,6 +30,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $sql = "INSERT INTO posts (title, content, category, created_at) VALUES ('$title', '$content', '$category', '$created_at')";
 
         if (mysqli_query($conn, $sql)) {
+//        if ($conn->query($sql) === TRUE) {
+
             header("Location: index.php");
             exit;
         } else {
@@ -34,20 +40,20 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     }
 
     // Update
-    if (isset($_POST["update"])) {
-        $id = $_POST["post_id"];
-        $title = $_POST["title"];
-        $content = $_POST["content"];
-
-        $sql = "UPDATE posts SET title='$title', content='$content' WHERE id=$id";
-
-        if (mysqli_query($conn, $sql)) {
-            header("Location: index.php");
-            exit;
-        } else {
-            echo "Error: " . mysqli_error($conn);
-        }
-    }
+//    if (isset($_POST["update"])) {
+//        $id = $_POST["post_id"];
+//        $title = $_POST["title"];
+//        $content = $_POST["content"];
+//
+//        $sql = "UPDATE posts SET title='$title', content='$content' WHERE id=$id";
+//
+//        if (mysqli_query($conn, $sql)) {
+//            header("Location: index.php");
+//            exit;
+//        } else {
+//            echo "Error: " . mysqli_error($conn);
+//        }
+//    }
 }
 
 // Delete
@@ -81,7 +87,9 @@ $sql = "SELECT * FROM posts ORDER BY created_at DESC LIMIT $offset, $posts_per_p
 if (isset($_GET['search'])) {
     $search = $_GET['search'];
     $sql = "SELECT * FROM posts WHERE title LIKE '%$search%' ORDER BY created_at DESC LIMIT $offset, $posts_per_page";
-} else {
+}
+
+//else {
     // Sorting
     $sort = isset($_GET['sort']) ? $_GET['sort'] : 'date_desc';
     switch ($sort) {
@@ -99,7 +107,7 @@ if (isset($_GET['search'])) {
     }
 
     $sql = "SELECT * FROM posts ORDER BY $orderBy LIMIT $offset, $posts_per_page";
-}
+//}
 
 $result = mysqli_query($conn, $sql);
 ?>
@@ -119,23 +127,23 @@ $result = mysqli_query($conn, $sql);
 
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <a class="navbar-brand" href="#">Sports Blog</a>
+        <a class="navbar-brand" href="index.php">Sports Blog</a>
 
         <!-- Search Bar -->
-        <div class="search-bar ml-auto">
-            <form class="form-inline" method="get">
-                <input type="text" class="form-control mr-2" name="search" id="search"
-                    placeholder="Search posts by title">
-                <button type="submit" class="btn btn-success">Search</button>
-            </form>
-        </div>
+<!--        <div class="search-bar ml-auto">-->
+<!--<!--            <form class="form-inline" method="get">-->-->
+<!--                <input type="text" class="form-control mr-2" name="search" id="search"-->
+<!--                    placeholder="Search posts by title">-->
+<!--                <button type="submit" class="btn btn-success">Search</button>-->
+<!--<!--            </form>-->-->
+<!--        </div>-->
     </nav>
 
 
-    <main class="container mt-4"> 
+    <main class="container mt-4">
         <div class="post-form">
             <h3>Create Post</h3>
-            <form method="post">
+            <form method="post"  action="index.php">
                 <div class="form-group">
                     <input type="text" class="form-control" name="title" placeholder="Title" required>
                 </div>
@@ -218,16 +226,21 @@ $result = mysqli_query($conn, $sql);
             });
 
             // Handle the form submission on Search button click
-            $('form').submit(function (event) {
-                event.preventDefault();
-                searchPosts();
-            });
+            // $('form').submit(function (event) {
+            //     event.preventDefault();
+            //     searchPosts();
+            // });
         });
 
-        function searchPosts() {
-            var searchQuery = $('#search').val();
-            window.location.href = 'index.php?search=' + searchQuery;
-        }
+        // function searchPosts() {
+        //     var searchQuery = $('#search').val().trim(); // Trim any leading/trailing whitespace
+        //     if (searchQuery !== "") {
+        //         window.location.href = 'index.php?search=' + encodeURIComponent(searchQuery);
+        //     } else {
+        //         // If search query is empty, remove the search parameter and reload the page
+        //         window.location.href = 'index.php';
+        //     }
+        // }
 
         function sortPosts() {
             var sortBy = $('#sort').val();
