@@ -1,4 +1,17 @@
 $(document).ready(function() {
+
+    $('#search').keydown(function(event) {
+        if (event.keyCode == 13) {
+            event.preventDefault();
+            searchPosts();
+        }
+    });
+
+    // Handle the form submission on Search button click
+    $('form').submit(function(event) {
+        event.preventDefault();
+        searchPosts();
+    });
     function loadPosts() {
         // Fetch posts from the server using AJAX and display them on the page
         // ...
