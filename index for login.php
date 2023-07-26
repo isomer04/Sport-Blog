@@ -1,4 +1,9 @@
 <?php
+
+session_start();
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 $host = 'localhost:3306';
 $username = 'root';
 $password = '123456';
@@ -168,16 +173,16 @@ $result = mysqli_query($conn, $sql);
     <a class="navbar-brand" href="index.php">Sports Blog</a>
 
     <!-- Search Bar -->
-    <div class="search-bar ml-auto">
-        <form class="form-inline" method="get">
-            <input type="text" class="form-control mr-2" name="search" id="search"
-                   placeholder="Search posts by title">
-            <button type="submit" class="btn btn-success">Search</button>
-        </form>
-    </div>
+<!--    <div class="search-bar ml-auto">-->
+<!--        <form class="form-inline" method="get">-->
+<!--            <input type="text" class="form-control mr-2" name="search" id="search"-->
+<!--                   placeholder="Search posts by title">-->
+<!--            <button type="submit" class="btn btn-success">Search</button>-->
+<!--        </form>-->
+<!--    </div>-->
 
     <!-- User Actions -->
-    <ul class="navbar-nav">
+    <ul class="navbar-nav ml-auto">
         <?php if ($isLoggedIn) { ?>
             <li class="nav-item">
                 <a class="nav-link" href="logout.php">Logout</a>
@@ -337,26 +342,26 @@ $result = mysqli_query($conn, $sql);
     <script src="https://code.jquery.com/jquery-3.6.0.slim.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script>
-        $(document).ready(function () {
-            // Handle the form submission on Enter key press
-            $('#search').keydown(function (event) {
-                if (event.keyCode == 13) {
-                    event.preventDefault();
-                    searchPosts();
-                }
-            });
+        // $(document).ready(function () {
+        //     // Handle the form submission on Enter key press
+        //     $('#search').keydown(function (event) {
+        //         if (event.keyCode == 13) {
+        //             event.preventDefault();
+        //             searchPosts();
+        //         }
+        //     });
+        //
+        //     // Handle the form submission on Search button click
+        //     // $('form').submit(function (event) {
+        //     //     event.preventDefault();
+        //     //     searchPosts();
+        //     // });
+        // });
 
-            // Handle the form submission on Search button click
-            $('form').submit(function (event) {
-                event.preventDefault();
-                searchPosts();
-            });
-        });
-
-        function searchPosts() {
-            var searchQuery = $('#search').val();
-            window.location.href = 'index.php?search=' + searchQuery;
-        }
+        // function searchPosts() {
+        //     var searchQuery = $('#search').val();
+        //     window.location.href = 'index.php?search=' + searchQuery;
+        // }
 
         function sortPosts() {
             var sortBy = $('#sort').val();

@@ -1,5 +1,7 @@
 <?php
 
+session_start();
+
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
@@ -7,6 +9,9 @@ $host = 'localhost:3306';
 $username = 'root';
 $password = '123456';
 $db_name = 'sportblog';
+
+session_destroy();
+//header("Location: index.php");
 
 // Establish a database connection
 $conn = mysqli_connect($host, $username, $password, $db_name);
@@ -17,6 +22,53 @@ if (!$conn) {
 
 //include 'config.php';
 
+
+// Check if the user is logged in
+$isLoggedIn = isset($_SESSION['user_id']);
+
+// User login
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["login"])) {
+    $username = $_POST["username"];
+    $password = $_POST["password"];
+
+    // Fetch user information from the database
+    $sql = "SELECT id, password FROM users WHERE username='$username'";
+    $result = mysqli_query($conn, $sql);
+
+    if ($result && mysqli_num_rows($result) === 1) {
+        $row = mysqli_fetch_assoc($result);
+        $hashedPassword = $row['password'];
+
+        // Verify password
+        if (password_verify($password, $hashedPassword)) {
+            $_SESSION['user_id'] = $row['id'];
+            header("Location: index.php");
+            exit;
+        } else {
+            $loginError = "Invalid username or password";
+        }
+    } else {
+        $loginError = "Invalid username or password";
+    }
+}
+
+// User registration
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["register"])) {
+    $username = $_POST["username"];
+    $password = $_POST["password"];
+    $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+
+    // Insert user into the database
+    $sql = "INSERT INTO users (username, password) VALUES ('$username', '$hashedPassword')";
+
+    if (mysqli_query($conn, $sql)) {
+        $_SESSION['user_id'] = mysqli_insert_id($conn);
+        header("Location: index.php");
+        exit;
+    } else {
+        $registerError = "Error registering user: " . mysqli_error($conn);
+    }
+}
 
 // CRUD Operations
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
@@ -128,6 +180,21 @@ $result = mysqli_query($conn, $sql);
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <a class="navbar-brand" href="index.php">Sports Blog</a>
+
+        <ul class="navbar-nav  ml-auto">
+            <?php if ($isLoggedIn) { ?>
+                <li class="nav-item">
+                    <a class="nav-link" href="logout.php">Logout</a>
+                </li>
+            <?php } else { ?>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" data-toggle="modal" data-target="#loginModal">Login</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" data-toggle="modal" data-target="#registerModal">Register</a>
+                </li>
+            <?php } ?>
+        </ul>
 
         <!-- Search Bar -->
 <!--        <div class="search-bar ml-auto">-->
