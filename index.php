@@ -152,6 +152,33 @@ if (isset($_GET['search'])) {
     $sql = "SELECT * FROM posts ORDER BY $orderBy LIMIT $offset, $posts_per_page";
 }
 
+// Function to get the number of upvotes for a post
+function getUpvoteCount($post_id) {
+    global $conn;
+    $sql = "SELECT COUNT(*) AS count FROM upvotes WHERE post_id = $post_id";
+    $result = mysqli_query($conn, $sql);
+    $row = mysqli_fetch_assoc($result);
+    return $row['count'];
+}
+
+// Handle the upvote request
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["upvote"])) {
+    if ($isLoggedIn) {
+        $post_id = $_POST["upvote"];
+        $user_id = $_SESSION["user_id"];
+
+        // Check if the user has already upvoted this post
+        $sql = "SELECT * FROM upvotes WHERE post_id = $post_id AND user_id = $user_id";
+        $result = mysqli_query($conn, $sql);
+
+        if (mysqli_num_rows($result) === 0) {
+            // Insert the upvote into the database
+            $sql = "INSERT INTO upvotes (post_id, user_id) VALUES ($post_id, $user_id)";
+            mysqli_query($conn, $sql);
+        }
+    }
+}
+
 $result = mysqli_query($conn, $sql);
 ?>
 
@@ -308,7 +335,17 @@ $result = mysqli_query($conn, $sql);
                     <?php echo $row['title']; ?>
                 </h2>
                 <p class="card-text">
-                    <?php echo $row['content']; ?>
+                    <?php
+                    // Display a portion of the content and a "Read More" link
+                    $content = $row['content'];
+                    $contentLength = strlen($content);
+                    if ($contentLength > 200) {
+                        $content = substr($content, 0, 200) . '...';
+                        echo $content . ' <a href="post.php?id=' . $row['id'] . '">Read More</a>';
+                    } else {
+                        echo $content;
+                    }
+                    ?>
                 </p>
                 <p>Category:
                     <?php echo $row['category']; ?>
@@ -322,9 +359,27 @@ $result = mysqli_query($conn, $sql);
                        onclick="return confirm('Are you sure you want to delete this post?')"
                        class="btn btn-danger">Delete</a>
                 <?php } ?>
+
+                <!-- Upvote button -->
+                <?php
+//                $postId = $row['id'];
+//                $userId = $_SESSION['user_id'];
+//
+//                // Check if the user has already upvoted this post
+//                $sql = "SELECT COUNT(*) AS count FROM upvotes WHERE post_id = $postId AND user_id = $userId";
+//                $result = mysqli_query($conn, $sql);
+//                $upvoted = mysqli_fetch_assoc($result)['count'] > 0;
+                ?>
+<!--                <button class="btn btn-success upvote-btn --><?php //echo $upvoted ? 'disabled' : ''; ?><!--"-->
+<!--                        data-post-id="--><?php //echo $postId; ?><!--"-->
+<!--                        data-user-id="--><?php //echo $userId; ?><!--"-->
+<!--                    --><?php //echo $upvoted ? 'disabled' : ''; <!-->--> ?>
+<!--                    Upvote --><?php //echo $row['upvotes']; ?>
+<!--                </button>-->
             </div>
         </div>
     <?php } ?>
+
 
     <!-- Pagination links -->
     <div class="pagination mt-4">
@@ -341,6 +396,8 @@ $result = mysqli_query($conn, $sql);
     <!-- jQuery and Bootstrap JS -->
     <script src="https://code.jquery.com/jquery-3.6.0.slim.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
 <script>
     // Extract the value of $sort from the HTML attribute
     var sortValue = "<?php echo isset($sort) ? $sort : 'date_desc'; ?>";
@@ -367,12 +424,55 @@ $result = mysqli_query($conn, $sql);
 
         // Set the selected value of the sort dropdown
         $('#sort').val(sortValue);
+
+        // Handle upvote button click
+        $('.upvote-btn').click(function () {
+            var postId = $(this).data('post-id');
+            var userId = $(this).data('user-id');
+            var upvoteBtn = $(this);
+
+            // Send an AJAX request to update the upvote count in the database
+            $.ajax({
+                method: 'POST',
+                url: 'upvote.php',
+                data: {post_id: postId, user_id: userId},
+                dataType: 'json',
+                success: function (response) {
+                    if (response.success) {
+                        // Update the upvote count on the button and disable it
+                        var newUpvotes = parseInt(upvoteBtn.text().split(' ')[1]) + 1;
+                        upvoteBtn.text('Upvote ' + newUpvotes);
+                        upvoteBtn.addClass('disabled');
+                        upvoteBtn.attr('disabled', true);
+                    } else {
+                        // Handle the error (e.g., display an error message)
+                    }
+                },
+                error: function () {
+                    // Handle the error (e.g., display an error message)
+                }
+            });
+        });
     });
 
     function searchPosts() {
         var searchQuery = $('#search').val();
         window.location.href = 'index.php?search=' + searchQuery;
     }
+
+    // function upvotePost(postId) {
+    //     $.ajax({
+    //         type: "POST",
+    //         url: "index.php",
+    //         data: {upvote: postId},
+    //         success: function (data) {
+    //             // Update the upvote count
+    //             var upvoteCountSpan = $("#upvote-count-" + postId);
+    //             var currentCount = parseInt(upvoteCountSpan.text());
+    //             upvoteCountSpan.text(currentCount + 1);
+    //         }
+    //     });
+    // }
 </script>
 </body>
 
