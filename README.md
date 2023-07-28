@@ -18,7 +18,7 @@ Sports Blog is a simple blogging platform built with PHP and MySQL. Users can re
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/your-username/sports-blog.git
+git clone https://github.com/isomer04/Sport-Blog.git
 ```
 
 2. Set up the database:
