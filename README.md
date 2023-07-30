@@ -2,6 +2,9 @@
 
 Sports Blog is a simple blogging platform built with PHP and MySQL. Users can register, login, create, edit, and delete blog posts, as well as upvote posts they like. The application also supports pagination, sorting, and searching for blog posts.
 
+![sportblog_php](https://github.com/isomer04/Sport-Blog/assets/43922158/f0bd45d2-8a6b-4dcd-ae3e-a22ec3ecada7)
+
+
 ## Features
 
 - User registration and login functionality.
@@ -15,7 +18,7 @@ Sports Blog is a simple blogging platform built with PHP and MySQL. Users can re
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/your-username/sports-blog.git
+git clone https://github.com/isomer04/Sport-Blog.git
 ```
 
 2. Set up the database:
