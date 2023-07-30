@@ -7,14 +7,11 @@ ini_set('display_errors', 1);
 require_once 'DatabaseConnection.php';
 require_once 'User.php';
 require_once 'Post.php';
-
-$host = 'localhost:3306';
-$username = 'root';
-$password = '123456';
-$db_name = 'sportblog';
+require_once 'config.php';
 
 // Establish a database connection
 $dbConnection = new DatabaseConnection($host, $username, $password, $db_name);
+$dbConnection->connect();
 
 // Initialize user and post objects
 $user = new User($dbConnection);
@@ -68,12 +65,21 @@ if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET["delete"])) {
 // Fetch blog posts from the database
 $sql = "SELECT * FROM posts ORDER BY created_at DESC";
 
-//if($dbConnection->getConnection() != null) {
-    $result = mysqli_query($dbConnection->getConnection(), $sql);
+// Establish database connection
+$mysqli = $dbConnection->getConnection();
 
-//}
+// Check if connection was successful
+if ($mysqli->connect_errno) {
+    die('Database connection error: ' . $mysqli->connect_error);
+}
 
-// ... (The rest of the code remains the same as before)
+// Perform the query
+$result = mysqli_query($mysqli, $sql);
+
+// Check for query errors
+if (!$result) {
+    die('Query error: ' . mysqli_error($mysqli));
+}
 
 
 ?>
@@ -250,7 +256,7 @@ $sql = "SELECT * FROM posts ORDER BY created_at DESC";
                     <?php echo $row['created_at']; ?>
                 </p>
                 <?php if ($isLoggedIn) { ?>
-                    <a href="edit.php?id=<?php echo $row['id']; ?>" class="btn btn-warning">Edit</a>
+                    <a href="Edit.php?id=<?php echo $row['id']; ?>" class="btn btn-warning">Edit</a>
                     <a href="?delete=<?php echo $row['id']; ?>"
                        onclick="return confirm('Are you sure you want to delete this post?')"
                        class="btn btn-danger">Delete</a>

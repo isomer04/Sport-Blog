@@ -1,17 +1,14 @@
 <?php
 //include 'config.php';
+require_once 'DatabaseConnection.php';
+require_once 'config.php';
 
-$host = 'localhost:3306';
-$username = 'root';
-$password = '123456';
-$db_name = 'sportblog';
+$dbConnection = new DatabaseConnection($host, $username, $password, $db_name);
 
 // Establish a database connection
-$conn = mysqli_connect($host, $username, $password, $db_name);
+$dbConnection->connect();
+$conn = $dbConnection->getConnection();
 
-if (!$conn) {
-    die("Connection failed: " . mysqli_connect_error());
-}
 
 // Handle the update operation separately
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["update"])) {
@@ -22,7 +19,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["update"])) {
     $sql = "UPDATE posts SET title='$title', content='$content' WHERE id=$id";
 
     if (mysqli_query($conn, $sql)) {
-        // Redirect to index.php with debugging message
+
         header("Location: index.php?update_success=true");
         exit;
     } else {
