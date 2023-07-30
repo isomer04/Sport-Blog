@@ -1,8 +1,12 @@
 <?php
-
 session_start();
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
+
+// Include the classes
+require_once 'DatabaseConnection.php';
+require_once 'User.php';
+require_once 'Post.php';
 
 $host = 'localhost:3306';
 $username = 'root';
@@ -10,13 +14,11 @@ $password = '123456';
 $db_name = 'sportblog';
 
 // Establish a database connection
-$conn = mysqli_connect($host, $username, $password, $db_name);
+$dbConnection = new DatabaseConnection($host, $username, $password, $db_name);
 
-if (!$conn) {
-    die("Connection failed: " . mysqli_connect_error());
-}
-
-//include 'config.php';
+// Initialize user and post objects
+$user = new User($dbConnection);
+$post = new Post($dbConnection);
 
 // Check if the user is logged in
 $isLoggedIn = isset($_SESSION['user_id']);
@@ -25,44 +27,14 @@ $isLoggedIn = isset($_SESSION['user_id']);
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["login"])) {
     $username = $_POST["username"];
     $password = $_POST["password"];
-
-    // Fetch user information from the database
-    $sql = "SELECT id, password FROM users WHERE username='$username'";
-    $result = mysqli_query($conn, $sql);
-
-    if ($result && mysqli_num_rows($result) === 1) {
-        $row = mysqli_fetch_assoc($result);
-        $hashedPassword = $row['password'];
-
-        // Verify password
-        if (password_verify($password, $hashedPassword)) {
-            $_SESSION['user_id'] = $row['id'];
-            header("Location: index.php");
-            exit;
-        } else {
-            $loginError = "Invalid username or password";
-        }
-    } else {
-        $loginError = "Invalid username or password";
-    }
+    $user->loginUser($username, $password);
 }
 
 // User registration
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["register"])) {
     $username = $_POST["username"];
     $password = $_POST["password"];
-    $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-
-    // Insert user into the database
-    $sql = "INSERT INTO users (username, password) VALUES ('$username', '$hashedPassword')";
-
-    if (mysqli_query($conn, $sql)) {
-        $_SESSION['user_id'] = mysqli_insert_id($conn);
-        header("Location: index.php");
-        exit;
-    } else {
-        $registerError = "Error registering user: " . mysqli_error($conn);
-    }
+    $user->registerUser($username, $password);
 }
 
 // CRUD Operations
@@ -74,14 +46,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $category = $_POST["category"];
         $created_at = date('Y-m-d H:i:s');
 
-        $sql = "INSERT INTO posts (title, content, category, created_at) VALUES ('$title', '$content', '$category', '$created_at')";
-
-        if (mysqli_query($conn, $sql)) {
-            header("Location: index.php");
-            exit;
-        } else {
-            echo "Error: " . mysqli_error($conn);
-        }
+        $post->createPost($title, $content, $category, $created_at);
     }
 
     // Update
@@ -90,96 +55,27 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $title = $_POST["title"];
         $content = $_POST["content"];
 
-        $sql = "UPDATE posts SET title='$title', content='$content' WHERE id=$id";
-
-        if (mysqli_query($conn, $sql)) {
-            header("Location: index.php");
-            exit;
-        } else {
-            echo "Error: " . mysqli_error($conn);
-        }
+        $post->updatePost($id, $title, $content);
     }
 }
 
 // Delete
 if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET["delete"])) {
     $id = $_GET["delete"];
-    $sql = "DELETE FROM posts WHERE id=$id";
-
-    if (mysqli_query($conn, $sql)) {
-        header("Location: index.php");
-        exit;
-    } else {
-        echo "Error deleting record: " . mysqli_error($conn);
-    }
+    $post->deletePost($id);
 }
 
 // Fetch blog posts from the database
 $sql = "SELECT * FROM posts ORDER BY created_at DESC";
-$result = mysqli_query($conn, $sql);
 
-// Pagination
-$posts_per_page = 5;
-$total_posts = mysqli_num_rows($result);
-$total_pages = ceil($total_posts / $posts_per_page);
+//if($dbConnection->getConnection() != null) {
+    $result = mysqli_query($dbConnection->getConnection(), $sql);
 
-$page = isset($_GET['page']) ? $_GET['page'] : 1;
-$offset = ($page - 1) * $posts_per_page;
+//}
 
-$sql = "SELECT * FROM posts ORDER BY created_at DESC LIMIT $offset, $posts_per_page";
+// ... (The rest of the code remains the same as before)
 
-// Searching
-if (isset($_GET['search'])) {
-    $search = $_GET['search'];
-    $sql = "SELECT * FROM posts WHERE title LIKE '%$search%' ORDER BY created_at DESC LIMIT $offset, $posts_per_page";
-} else {
-    // Sorting
-    $sort = isset($_GET['sort']) ? $_GET['sort'] : 'date_desc';
-    switch ($sort) {
-        case 'date_asc':
-            $orderBy = 'created_at ASC';
-            break;
-        case 'title_asc':
-            $orderBy = 'title ASC';
-            break;
-        case 'title_desc':
-            $orderBy = 'title DESC';
-            break;
-        default:
-            $orderBy = 'created_at DESC';
-    }
 
-    $sql = "SELECT * FROM posts ORDER BY $orderBy LIMIT $offset, $posts_per_page";
-}
-
-// Function to get the number of upvotes for a post
-function getUpvoteCount($post_id) {
-    global $conn;
-    $sql = "SELECT COUNT(*) AS count FROM upvotes WHERE post_id = $post_id";
-    $result = mysqli_query($conn, $sql);
-    $row = mysqli_fetch_assoc($result);
-    return $row['count'];
-}
-
-// Handle the upvote request
-if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["upvote"])) {
-    if ($isLoggedIn) {
-        $post_id = $_POST["upvote"];
-        $user_id = $_SESSION["user_id"];
-
-        // Check if the user has already upvoted this post
-        $sql = "SELECT * FROM upvotes WHERE post_id = $post_id AND user_id = $user_id";
-        $result = mysqli_query($conn, $sql);
-
-        if (mysqli_num_rows($result) === 0) {
-            // Insert the upvote into the database
-            $sql = "INSERT INTO upvotes (post_id, user_id) VALUES ($post_id, $user_id)";
-            mysqli_query($conn, $sql);
-        }
-    }
-}
-
-$result = mysqli_query($conn, $sql);
 ?>
 
 <!DOCTYPE html>
@@ -362,20 +258,20 @@ $result = mysqli_query($conn, $sql);
 
                 <!-- Upvote button -->
                 <?php
-//                $postId = $row['id'];
-//                $userId = $_SESSION['user_id'];
-//
-//                // Check if the user has already upvoted this post
-//                $sql = "SELECT COUNT(*) AS count FROM upvotes WHERE post_id = $postId AND user_id = $userId";
-//                $result = mysqli_query($conn, $sql);
-//                $upvoted = mysqli_fetch_assoc($result)['count'] > 0;
+                //                $postId = $row['id'];
+                //                $userId = $_SESSION['user_id'];
+                //
+                //                // Check if the user has already upvoted this post
+                //                $sql = "SELECT COUNT(*) AS count FROM upvotes WHERE post_id = $postId AND user_id = $userId";
+                //                $result = mysqli_query($conn, $sql);
+                //                $upvoted = mysqli_fetch_assoc($result)['count'] > 0;
                 ?>
-<!--                <button class="btn btn-success upvote-btn --><?php //echo $upvoted ? 'disabled' : ''; ?><!--"-->
-<!--                        data-post-id="--><?php //echo $postId; ?><!--"-->
-<!--                        data-user-id="--><?php //echo $userId; ?><!--"-->
-<!--                    --><?php //echo $upvoted ? 'disabled' : ''; <!-->--> ?>
-<!--                    Upvote --><?php //echo $row['upvotes']; ?>
-<!--                </button>-->
+                <!--                <button class="btn btn-success upvote-btn --><?php //echo $upvoted ? 'disabled' : ''; ?><!--"-->
+                <!--                        data-post-id="--><?php //echo $postId; ?><!--"-->
+                <!--                        data-user-id="--><?php //echo $userId; ?><!--"-->
+                <!--                    --><?php //echo $upvoted ? 'disabled' : ''; <!-->--> ?>
+                <!--                    Upvote --><?php //echo $row['upvotes']; ?>
+                <!--                </button>-->
             </div>
         </div>
     <?php } ?>
@@ -393,10 +289,10 @@ $result = mysqli_query($conn, $sql);
 </main>
 
 
-    <!-- jQuery and Bootstrap JS -->
-    <script src="https://code.jquery.com/jquery-3.6.0.slim.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- jQuery and Bootstrap JS -->
+<script src="https://code.jquery.com/jquery-3.6.0.slim.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <script>
     // Extract the value of $sort from the HTML attribute

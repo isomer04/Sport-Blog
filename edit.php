@@ -59,7 +59,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET["id"])) {
 <body>
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-    <a class="navbar-brand" href="index.php">Sports Blog</a>
+    <a class="navbar-brand" href="oldFiles/index.php">Sports Blog</a>
 </nav>
 
 
@@ -76,7 +76,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET["id"])) {
                 <textarea class="form-control" name="content" required><?php echo $row['content']; ?></textarea>
             </div>
             <button type="submit" class="btn btn-primary" name="update">Update Post</button>
-            <a href="index.php">
+            <a href="oldFiles/index.php">
                 <button type="button" class="btn btn-secondary">Cancel</button>
             </a>
         </form>
