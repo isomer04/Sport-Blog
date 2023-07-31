@@ -3,10 +3,9 @@
 class Post
 {
     private $conn;
-
-    public function __construct($conn)
+    public function __construct($dbConnection)
     {
-        $this->conn = $conn;
+        $this->conn = $dbConnection->getConnection();
     }
 
     public function createPost($title, $content, $category)
@@ -34,10 +33,19 @@ class Post
         }
     }
 
+
     public function deletePost($id)
     {
-        $sql = "DELETE FROM posts WHERE id=$id";
+        // Delete related upvotes first
+        $upvotesSql = "DELETE FROM upvotes WHERE post_id = $id";
+//        $mysqli = $this->dbConnection->getMysqli();
+        if (!mysqli_query($this->conn, $upvotesSql)) {
+            echo "Error deleting upvotes: " . mysqli_error($this->conn);
+            return;
+        }
 
+        // Then delete the post
+        $sql = "DELETE FROM posts WHERE id=$id";
         if (mysqli_query($this->conn, $sql)) {
             header("Location: index.php");
             exit;

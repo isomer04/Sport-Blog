@@ -4,10 +4,10 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 // Include the classes
+require_once 'config.php';
 require_once 'DatabaseConnection.php';
 require_once 'User.php';
 require_once 'Post.php';
-require_once 'config.php';
 
 // Establish a database connection
 $dbConnection = new DatabaseConnection($host, $username, $password, $db_name);
@@ -243,7 +243,7 @@ if (!$result) {
                     $contentLength = strlen($content);
                     if ($contentLength > 200) {
                         $content = substr($content, 0, 200) . '...';
-                        echo $content . ' <a href="post.php?id=' . $row['id'] . '">Read More</a>';
+                        echo $content . ' <a href="postDetail.php?id=' . $row['id'] . '">Read More</a>';
                     } else {
                         echo $content;
                     }
